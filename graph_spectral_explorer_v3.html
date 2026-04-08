@@ -1,0 +1,619 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#ebebea;
+  --bdr:#d1d1ce;--bdr2:#c4c4c0;
+  --tx:#1a1a18;--tx2:#5a5a57;--tx3:#909090;
+  --blue:#185FA5;--bluebg:#E6F1FB;--bluetx:#0C447C;
+  --green:#0F6E56;--greenbg:#E1F5EE;--greentx:#085041;
+  --red:#993C1D;--redbg:#FAECE7;--redtx:#712B13;
+  --info-bg:#E6F1FB;--info-tx:#0C447C;
+  --ok-bg:#E1F5EE;--ok-tx:#085041;
+  --warn-bg:#FAEEDA;--warn-tx:#633806;
+  --err-bg:#FAECE7;--err-tx:#712B13;
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333331;
+  --bdr:#3a3a38;--bdr2:#4a4a48;
+  --tx:#e8e8e4;--tx2:#a0a09a;--tx3:#666660;
+  --bluebg:#0c2e52;--bluetx:#85B7EB;
+  --greenbg:#04342C;--greentx:#5DCAA5;
+  --redbg:#3a1508;--redtx:#F0997B;
+  --info-bg:#0c2e52;--info-tx:#85B7EB;
+  --ok-bg:#04342C;--ok-tx:#5DCAA5;
+  --warn-bg:#2a1800;--warn-tx:#EF9F27;
+  --err-bg:#3a1508;--err-tx:#F0997B;
+}}
+body{background:var(--bg);font-family:system-ui,-apple-system,sans-serif}
+.wrap{padding:12px;background:var(--bg);min-height:100vh}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding:10px 12px;background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--rl)}
+.tool-sep{width:1px;height:20px;background:var(--bdr2);margin:0 2px;flex-shrink:0}
+.lbl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+button{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--r);border:0.5px solid var(--bdr2);background:var(--bg2);color:var(--tx2);font-size:12px;cursor:pointer;transition:all .1s;font-family:inherit}
+button:hover{background:var(--bg3);color:var(--tx)}
+button.on{background:var(--info-bg);color:var(--info-tx);border-color:var(--blue);font-weight:600}
+button.run{background:var(--ok-bg);color:var(--ok-tx);border-color:var(--green);width:100%;justify-content:center;font-weight:500;margin-top:4px;padding:7px}
+button.sm{padding:4px 9px;font-size:11px}
+.main-grid{display:grid;grid-template-columns:1fr 300px;gap:10px;align-items:start}
+@media(max-width:680px){.main-grid{grid-template-columns:1fr}}
+.canvas-wrap{border:0.5px solid var(--bdr);border-radius:var(--rl);overflow:hidden;position:relative;background:var(--bg2)}
+canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
+.hint{position:absolute;bottom:8px;left:8px;font-size:11px;background:var(--bg);border:0.5px solid var(--bdr);border-radius:6px;padding:3px 8px;color:var(--tx3);pointer-events:none}
+.side{display:flex;flex-direction:column;gap:8px}
+.card{background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--rl);padding:10px 12px}
+.sec{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.stat-box{background:var(--bg2);border-radius:var(--r);padding:8px;text-align:center}
+.stat-num{font-size:20px;font-weight:500;color:var(--tx);line-height:1}
+.stat-cap{font-size:10px;color:var(--tx3);margin-top:3px}
+.ibox{border-radius:var(--r);padding:7px 10px;font-size:12px;line-height:1.5;background:var(--bg2);color:var(--tx2)}
+.ibox.hi{background:var(--info-bg);color:var(--info-tx)}
+.ibox.ok{background:var(--ok-bg);color:var(--ok-tx)}
+.ibox.warn{background:var(--warn-bg);color:var(--warn-tx)}
+.ibox.err{background:var(--err-bg);color:var(--err-tx)}
+.row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.sr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sr label{font-size:12px;color:var(--tx2);min-width:64px;flex-shrink:0}
+.sr input[type=range]{flex:1;min-width:0;accent-color:var(--blue)}
+.sr span{font-size:12px;font-family:monospace;min-width:22px;text-align:right;color:var(--tx)}
+.sr select{flex:1;padding:4px 7px;border-radius:6px;border:0.5px solid var(--bdr2);background:var(--bg2);color:var(--tx);font-size:12px;font-family:inherit}
+.eig-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.eig-lbl{font-family:monospace;font-size:11px;min-width:88px;color:var(--tx2);flex-shrink:0}
+.eig-bg{flex:1;height:8px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.eig-fill{height:100%;border-radius:3px;transition:width .3s}
+.step-item{border:0.5px solid var(--bdr);border-radius:var(--r);margin-bottom:5px;overflow:hidden}
+.step-hdr{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;background:var(--bg2)}
+.step-hdr:hover{background:var(--bg3)}
+.step-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;background:var(--ok-bg);color:var(--ok-tx)}
+.step-title{font-size:12px;font-weight:500;color:var(--tx);flex:1}
+.step-arr{font-size:13px;color:var(--tx3)}
+.step-body{padding:8px 10px;font-size:12px;color:var(--tx2);border-top:0.5px solid var(--bdr);display:none;line-height:1.5}
+.step-body.open{display:block}
+.kdot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;flex-shrink:0}
+.cbar-row{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.cbar-lbl{font-size:12px;font-family:monospace;min-width:18px;color:var(--tx2)}
+.cbar-bg{flex:1;height:12px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.cbar-fill{height:100%;border-radius:3px;transition:width .35s}
+.cbar-val{font-size:11px;font-family:monospace;min-width:42px;text-align:right;color:var(--tx2)}
+
+/* Matrix styles */
+.mat-section{margin-bottom:10px}
+.mat-title{font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.mat-title .mat-badge{font-size:10px;padding:1px 6px;border-radius:8px;font-weight:500}
+.mat-badge.A{background:var(--info-bg);color:var(--info-tx)}
+.mat-badge.D{background:var(--warn-bg);color:var(--warn-tx)}
+.mat-badge.L{background:var(--ok-bg);color:var(--ok-tx)}
+.mat-wrap{overflow-x:auto;border-radius:var(--r);border:0.5px solid var(--bdr)}
+.mat-empty{padding:20px;text-align:center;font-size:12px;color:var(--tx3)}
+table.mat{border-collapse:collapse;font-family:monospace;font-size:11px;width:100%}
+table.mat th{background:var(--bg3);color:var(--tx3);padding:3px 6px;font-weight:500;border-bottom:0.5px solid var(--bdr);text-align:center;font-size:10px;position:sticky;top:0}
+table.mat td{padding:3px 6px;text-align:center;border:0.5px solid var(--bdr);color:var(--tx2);min-width:28px;transition:background .2s,color .2s}
+table.mat td.diag{font-weight:600}
+table.mat td.pos{background:#E6F1FB;color:#0C447C}
+table.mat td.neg{background:#FAECE7;color:#712B13}
+table.mat td.zero{color:var(--tx3)}
+@media(prefers-color-scheme:dark){
+  table.mat td.pos{background:#0c2e52;color:#85B7EB}
+  table.mat td.neg{background:#3a1508;color:#F0997B}
+}
+.mat-tabs{display:flex;gap:4px;margin-bottom:8px}
+.mat-tab{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid var(--bdr2);background:var(--bg2);color:var(--tx2);transition:all .1s}
+.mat-tab.on{border-color:var(--blue);background:var(--info-bg);color:var(--info-tx)}
+.mat-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.mat-leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--tx3)}
+.mat-leg-swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+.highlight-pulse{animation:pulse .5s ease}
+@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+</style>
+
+<div class="wrap">
+<div class="toolbar">
+  <div style="display:flex;align-items:center;gap:5px">
+    <span class="lbl">Edit</span>
+    <button id="btn-node" class="on" onclick="setMode('node')">+ Node</button>
+    <button id="btn-edge" onclick="setMode('edge')">+ Edge</button>
+    <button id="btn-delete" onclick="setMode('delete')">Delete</button>
+    <button id="btn-move" onclick="setMode('move')">Move</button>
+  </div>
+  <div class="tool-sep"></div>
+  <div style="display:flex;gap:5px">
+    <button class="sm" onclick="undoLast()">↩ Undo</button>
+    <button class="sm" onclick="clearAll()">Clear</button>
+  </div>
+  <div class="tool-sep"></div>
+  <div style="display:flex;align-items:center;gap:5px">
+    <span class="lbl">Scenarios</span>
+    <button class="sm" onclick="loadS('two')">2 clusters</button>
+    <button class="sm" onclick="loadS('bridge')">+ Bridge</button>
+    <button class="sm" onclick="loadS('rings')">Rings</button>
+    <button class="sm" onclick="loadS('chain')">Chain</button>
+  </div>
+</div>
+
+<div class="main-grid">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div class="canvas-wrap">
+      <canvas id="gc"></canvas>
+      <div class="hint" id="hbadge">Click to add node</div>
+    </div>
+
+    <!-- Matrix panel below canvas -->
+    <div class="card" id="mat-card">
+      <div class="sec">
+        Matrix visualization
+        <span style="font-size:10px;color:var(--tx3);font-weight:400;margin-left:auto" id="mat-dim-label"></span>
+      </div>
+      <div class="mat-tabs">
+        <div class="mat-tab on" id="mt-A" onclick="setMatTab('A')">A &nbsp;— adjacency</div>
+        <div class="mat-tab" id="mt-D" onclick="setMatTab('D')">D &nbsp;— degree</div>
+        <div class="mat-tab" id="mt-L" onclick="setMatTab('L')">L &nbsp;— laplacian</div>
+      </div>
+      <div id="mat-desc" class="ibox" style="margin-bottom:8px;font-size:11px"></div>
+      <div class="mat-wrap" id="mat-wrap">
+        <div class="mat-empty">Add nodes and edges to see the matrices.</div>
+      </div>
+      <div class="mat-legend">
+        <div class="mat-leg-item"><div class="mat-leg-swatch" style="background:#E6F1FB;border:0.5px solid #85B7EB"></div>positive value</div>
+        <div class="mat-leg-item"><div class="mat-leg-swatch" style="background:#FAECE7;border:0.5px solid #F0997B"></div>negative value</div>
+        <div class="mat-leg-item"><div class="mat-leg-swatch" style="background:var(--bg2);border:0.5px solid var(--bdr)"></div>diagonal entry</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card">
+      <div class="sec">Graph stats</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="stat-n">0</div><div class="stat-cap">nodes</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-e">0</div><div class="stat-cap">edges</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-comp">0</div><div class="stat-cap">components</div></div>
+      </div>
+      <div class="ibox" id="graph-msg">Build a graph to begin.</div>
+    </div>
+
+    <div class="card">
+      <div class="sec">View mode</div>
+      <div class="row">
+        <button id="view-normal" class="on" onclick="setView('normal')">Default</button>
+        <button id="view-cluster" onclick="setView('cluster')">Clusters</button>
+        <button id="view-conv" onclick="setView('conv')">Convolution</button>
+      </div>
+      <div id="vcc" style="display:none;margin-top:2px">
+        <div class="sr"><label>K clusters</label><input type="range" id="k-sl" min="1" max="8" value="2" step="1" oninput="document.getElementById('k-out').textContent=this.value;kVal=+this.value"><span id="k-out">2</span></div>
+        <button class="run" onclick="runAll()">Run spectral clustering</button>
+      </div>
+      <div id="vcv" style="display:none;margin-top:2px">
+        <div class="sr"><label>Source</label><select id="conv-src" onchange="updateConv()"></select></div>
+        <div class="sr"><label>Hops k</label><input type="range" id="k-hop" min="0" max="4" value="1" step="1" oninput="document.getElementById('hop-out').textContent=this.value;updateConv()"><span id="hop-out">1</span></div>
+        <div class="ibox" id="conv-msg" style="margin-top:4px">Lᵏx propagates signal k steps.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec">Eigenvalues of L &nbsp;<span id="zero-badge" style="padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600"></span></div>
+      <div id="eig-list" style="max-height:130px;overflow-y:auto;margin-bottom:6px"></div>
+      <div class="ibox" id="eig-msg">—</div>
+    </div>
+
+    <div id="pipeline-card" class="card" style="display:none">
+      <div class="sec">Spectral clustering pipeline</div>
+      <div id="pipeline"></div>
+    </div>
+
+    <div id="conv-card" class="card" style="display:none">
+      <div class="sec">Signal propagation (Lᵏx)</div>
+      <div id="conv-bars"></div>
+      <div style="margin-top:8px;font-size:11px;color:var(--tx3)">Non-zero entries in row i of Lᵏ show nodes reachable in ≤k steps.</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const C=document.getElementById('gc');
+const X=C.getContext('2d');
+const CPAL=['#185FA5','#0F6E56','#993C1D','#993556','#854F0B','#3C3489'];
+const CFILL=['#E6F1FB','#E1F5EE','#FAECE7','#FBEAF0','#FAEEDA','#EEEDFE'];
+const CPALDK=['#85B7EB','#5DCAA5','#F0997B','#ED93B1','#EF9F27','#AFA9EC'];
+const CFILLDK=['#0c2e52','#04342C','#3a1508','#2d1020','#2a1800','#1a1840'];
+
+let nodes=[],edges=[],mode='node',edgeStart=null,dragging=null,dragOff={x:0,y:0},hist=[],clusterA=null,viewMode='normal',kVal=2,convSrc=0,convResult=null,matTab='A';
+
+function isDark(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;}
+function pal(){return isDark()?CPALDK:CPAL;}
+function fill(){return isDark()?CFILLDK:CFILL;}
+
+function snap(){
+  const cw=C.parentElement.clientWidth;
+  const ch=Math.max(280,Math.round(cw*0.52));
+  C.width=cw;C.height=ch;
+  C.style.width=cw+'px';C.style.height=ch+'px';
+  redraw();
+}
+
+function gp(e){
+  const r=C.getBoundingClientRect();
+  const s=e.touches?e.touches[0]:e;
+  return{x:(s.clientX-r.left)*(C.width/r.width),y:(s.clientY-r.top)*(C.height/r.height)};
+}
+
+function nAt(p,t=22){for(let i=nodes.length-1;i>=0;i--){const n=nodes[i],dx=p.x-n.x,dy=p.y-n.y;if(Math.sqrt(dx*dx+dy*dy)<t+n.r)return i;}return -1;}
+function eNear(p,t=7){
+  for(let i=0;i<edges.length;i++){
+    const[a,b]=edges[i],na=nodes[a],nb=nodes[b];
+    const dx=nb.x-na.x,dy=nb.y-na.y,len=Math.sqrt(dx*dx+dy*dy);
+    if(len<1)continue;
+    const tt=Math.max(0,Math.min(1,((p.x-na.x)*dx+(p.y-na.y)*dy)/(len*len)));
+    const cx2=na.x+tt*dx-p.x,cy2=na.y+tt*dy-p.y;
+    if(Math.sqrt(cx2*cx2+cy2*cy2)<t)return i;
+  }return -1;
+}
+
+function ph(){hist.push({n:JSON.parse(JSON.stringify(nodes)),e:JSON.parse(JSON.stringify(edges)),ca:clusterA?[...clusterA]:null});if(hist.length>50)hist.shift();}
+function undoLast(){if(!hist.length)return;const s=hist.pop();nodes=s.n;edges=s.e;clusterA=s.ca;update();}
+function clearAll(){ph();nodes=[];edges=[];clusterA=null;convResult=null;update();}
+
+function setMode(m){
+  mode=m;edgeStart=null;
+  ['node','edge','delete','move'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('on',x===m));
+  const hints={node:'Click canvas to place a node',edge:'Click source → click target to add edge',delete:'Click node or edge to remove',move:'Drag nodes to reposition'};
+  document.getElementById('hbadge').textContent=hints[m];
+  C.style.cursor=m==='move'?'grab':'crosshair';
+  redraw();
+}
+
+function setView(v){
+  viewMode=v;
+  ['normal','cluster','conv'].forEach(x=>document.getElementById('view-'+x).classList.toggle('on',x===v));
+  document.getElementById('vcc').style.display=v==='cluster'?'block':'none';
+  document.getElementById('vcv').style.display=v==='conv'?'block':'none';
+  document.getElementById('pipeline-card').style.display=v==='cluster'?'block':'none';
+  document.getElementById('conv-card').style.display=v==='conv'?'block':'none';
+  if(v==='conv'){populateConvSrc();updateConv();}
+  if(v!=='cluster')clusterA=null;
+  redraw();
+}
+
+function setMatTab(t){
+  matTab=t;
+  ['A','D','L'].forEach(x=>document.getElementById('mt-'+x).classList.toggle('on',x===t));
+  renderMatrices();
+}
+
+C.addEventListener('mousedown',onD);C.addEventListener('mousemove',onM);C.addEventListener('mouseup',onU);
+C.addEventListener('touchstart',e=>{e.preventDefault();onD(e);},{passive:false});
+C.addEventListener('touchmove',e=>{e.preventDefault();onM(e);},{passive:false});
+C.addEventListener('touchend',e=>{e.preventDefault();onU(e);},{passive:false});
+
+function onD(e){
+  const p=gp(e);
+  if(mode==='node'){ph();nodes.push({x:p.x,y:p.y,r:18,label:nodeLbl(nodes.length)});clusterA=null;update();}
+  else if(mode==='edge'){
+    const i=nAt(p);
+    if(i>=0){
+      if(edgeStart===null){edgeStart=i;redraw();}
+      else{
+        if(edgeStart!==i&&!edges.some(([a,b])=>(a===edgeStart&&b===i)||(a===i&&b===edgeStart))){ph();edges.push([edgeStart,i]);clusterA=null;}
+        edgeStart=null;update();
+      }
+    }
+  }else if(mode==='delete'){
+    const ni=nAt(p);
+    if(ni>=0){ph();edges=edges.filter(([a,b])=>a!==ni&&b!==ni).map(([a,b])=>[a>ni?a-1:a,b>ni?b-1:b]);nodes.splice(ni,1);clusterA=null;update();}
+    else{const ei=eNear(p);if(ei>=0){ph();edges.splice(ei,1);clusterA=null;update();}}
+  }else if(mode==='move'){
+    const i=nAt(p,30);if(i>=0){dragging=i;dragOff={x:p.x-nodes[i].x,y:p.y-nodes[i].y};C.style.cursor='grabbing';}
+  }
+}
+function onM(e){
+  const p=gp(e);
+  if(dragging!==null){nodes[dragging].x=p.x-dragOff.x;nodes[dragging].y=p.y-dragOff.y;update();}
+  else if(mode==='edge'&&edgeStart!==null)redraw(p);
+}
+function onU(){if(dragging!==null){ph();dragging=null;C.style.cursor='grab';}}
+
+function nodeLbl(i){return String.fromCharCode(65+i%26)+(i>=26?Math.floor(i/26):'');}
+
+function buildA(){const n=nodes.length,A=Array.from({length:n},()=>new Array(n).fill(0));edges.forEach(([i,j])=>{A[i][j]=1;A[j][i]=1;});return A;}
+function buildD(){const A=buildA(),n=nodes.length;return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?A[i].reduce((s,v)=>s+v,0):0));}
+function buildL(){const A=buildA(),n=nodes.length,deg=A.map(r=>r.reduce((s,v)=>s+v,0));return A.map((r,i)=>r.map((v,j)=>i===j?deg[i]:-v));}
+function matMul(A,B){const n=A.length;return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>A[i].reduce((s,v,k)=>s+v*B[k][j],0)));}
+function matVec(M,v){return M.map(r=>r.reduce((s,vi,i)=>s+vi*v[i],0));}
+
+function renderMatrices(){
+  const n=nodes.length;
+  const wrap=document.getElementById('mat-wrap');
+  const desc=document.getElementById('mat-desc');
+  const dimLbl=document.getElementById('mat-dim-label');
+
+  if(!n){
+    wrap.innerHTML='<div class="mat-empty">Add nodes and edges to see the matrices.</div>';
+    desc.textContent='';dimLbl.textContent='';return;
+  }
+
+  dimLbl.textContent=`${n} × ${n}`;
+
+  const descs={
+    A:'A[i][j] = 1 if an edge connects nodes i and j, 0 otherwise. Symmetric, no self-loops.',
+    D:'D is diagonal — D[i][i] is the degree of node i (number of edges attached to it). All off-diagonal entries are 0.',
+    L:'L = D − A. Diagonal = degree of node. Off-diagonal = −1 where edge exists, 0 otherwise. Row sums always equal 0.'
+  };
+  desc.textContent=descs[matTab];
+
+  let M;
+  if(matTab==='A')M=buildA();
+  else if(matTab==='D')M=buildD();
+  else M=buildL();
+
+  const labels=nodes.map(nd=>nd.label);
+
+  let html=`<table class="mat"><tr><th></th>${labels.map(l=>`<th>${l}</th>`).join('')}</tr>`;
+  M.forEach((row,i)=>{
+    html+=`<tr><th>${labels[i]}</th>`;
+    row.forEach((v,j)=>{
+      let cls='';
+      if(i===j)cls='diag';
+      else if(v>0)cls='pos';
+      else if(v<0)cls='neg';
+      else cls='zero';
+      html+=`<td class="${cls}">${v}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</table>';
+
+  wrap.innerHTML=html;
+  wrap.classList.add('highlight-pulse');
+  setTimeout(()=>wrap.classList.remove('highlight-pulse'),500);
+}
+
+function jacobiEig(M){
+  const n=M.length;if(!n)return{vals:[],vecs:[]};
+  let A=M.map(r=>[...r]);
+  let V=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+  for(let iter=0;iter<300;iter++){
+    let max=0,p=0,q=1;
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(Math.abs(A[i][j])>max){max=Math.abs(A[i][j]);p=i;q=j;}
+    if(max<1e-12)break;
+    const app=A[p][p],aqq=A[q][q],apq=A[p][q];
+    const theta=(aqq-app)/(2*apq);
+    const t=Math.sign(theta||1)/(Math.abs(theta)+Math.sqrt(theta*theta+1));
+    const c=1/Math.sqrt(t*t+1),s=t*c;
+    for(let r=0;r<n;r++){if(r!==p&&r!==q){const arp=A[r][p],arq=A[r][q];A[r][p]=A[p][r]=c*arp-s*arq;A[r][q]=A[q][r]=s*arp+c*arq;}}
+    A[p][p]=c*c*app-2*c*s*apq+s*s*aqq;A[q][q]=s*s*app+2*c*s*apq+c*c*aqq;A[p][q]=A[q][p]=0;
+    for(let r=0;r<n;r++){const vrp=V[r][p],vrq=V[r][q];V[r][p]=c*vrp-s*vrq;V[r][q]=s*vrp+c*vrq;}
+  }
+  const vals=A.map((r,i)=>r[i]);
+  const order=[...vals.keys()].sort((a,b)=>vals[a]-vals[b]);
+  return{vals:order.map(i=>vals[i]),vecs:Array.from({length:n},(_,i)=>order.map(j=>V[i][j]))};
+}
+
+function kmeans(rows,k,iter=120){
+  if(!rows.length||!k)return[];
+  k=Math.min(k,rows.length);
+  const dist2=(a,b)=>a.reduce((s,v,i)=>s+(v-b[i])**2,0);
+  const centers=[];
+  let si=0,sv=-Infinity;
+  rows.forEach((r,i)=>{const v=Math.abs(r[0]);if(v>sv){sv=v;si=i;}});
+  centers.push([...rows[si]]);
+  while(centers.length<k){
+    let bi=-1,bd=-1;
+    rows.forEach((r,i)=>{const minD=Math.min(...centers.map(c=>dist2(r,c)));if(minD>bd){bd=minD;bi=i;}});
+    if(bi<0)break;centers.push([...rows[bi]]);
+  }
+  let assign=new Array(rows.length).fill(0);
+  for(let it=0;it<iter;it++){
+    let changed=false;
+    rows.forEach((r,i)=>{let best=0,bd=Infinity;centers.forEach((c,ci)=>{const dd=dist2(r,c);if(dd<bd){bd=dd;best=ci;}});if(assign[i]!==best){assign[i]=best;changed=true;}});
+    if(!changed)break;
+    centers.forEach((c,ci)=>{const mb=rows.filter((_,i)=>assign[i]===ci);if(!mb.length)return;c.forEach((_,j)=>{c[j]=mb.reduce((s,r)=>s+r[j],0)/mb.length;});});
+  }
+  const lm=new Map();let nl=0;
+  assign.forEach(a=>{if(!lm.has(a))lm.set(a,nl++);});
+  return assign.map(a=>lm.get(a));
+}
+
+function runAll(){
+  const n=nodes.length;
+  if(n<2){showPipeline([]);setMsg('Need at least 2 nodes.','err');return;}
+  const L=buildL(),{vals,vecs}=jacobiEig(L);
+  const k=Math.min(kVal,n);
+  const P=pal(),F=fill();
+  const steps=[];
+
+  steps.push({title:'Step 1 — Eigendecomposition of L',content:()=>{
+    const zeros=vals.filter(v=>Math.abs(v)<0.01).length;
+    let h=`<div class="ibox ${zeros>1?'hi':'ok'}" style="margin-bottom:6px"><strong>${zeros} zero eigenvalue${zeros!==1?'s':''}</strong> → <strong>${zeros} component${zeros!==1?'s':''}</strong>${zeros===1?' — fully connected':''}.</div>`;
+    const mx=Math.max(...vals.map(Math.abs),0.001);
+    h+=vals.map((v,i)=>{const z=Math.abs(v)<0.01,w=Math.round(Math.abs(v)/mx*100);return `<div class="eig-row"><span class="eig-lbl" style="${z?'color:#0F6E56;font-weight:600':''}">${z?'★':' '}λ${i+1}=${v.toFixed(3)}</span><div class="eig-bg"><div class="eig-fill" style="width:${w}%;background:${z?'#0F6E56':'#185FA5'};opacity:${z?1:0.45}"></div></div></div>`;}).join('');
+    return h;
+  }});
+
+  const subV=vecs.map(row=>row.slice(0,k));
+  steps.push({title:`Step 2 — Select ${k} eigenvector${k!==1?'s':''} (K=${k})`,content:()=>{
+    let h=`<div style="font-size:11px;color:var(--tx3);margin-bottom:5px">Each row = node's spectral embedding.</div>`;
+    h+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:monospace;font-size:11px"><tr><td style="padding:2px 6px;color:var(--tx3)">Node</td>${Array.from({length:k},(_,j)=>`<td style="padding:2px 6px;color:var(--tx3)">v${j+1}</td>`).join('')}</tr>`;
+    subV.forEach((row,i)=>{h+=`<tr><td style="padding:2px 6px;font-weight:600;color:${P[(clusterA&&clusterA[i])||0]}">${nodes[i].label}</td>${row.map(v=>`<td style="padding:2px 5px;color:var(--tx2)">${v.toFixed(3)}</td>`).join('')}</tr>`;});
+    h+='</table></div>';return h;
+  }});
+
+  const norms=subV.map(r=>Math.sqrt(r.reduce((s,v)=>s+v*v,0)));
+  const subVN=subV.map((r,i)=>norms[i]<1e-10?r:r.map(v=>v/norms[i]));
+  steps.push({title:'Step 3 — Normalise row vectors',content:()=>{
+    let h=`<div style="font-size:11px;color:var(--tx3);margin-bottom:5px">Rows divided by L2 norm.</div>`;
+    h+=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:monospace;font-size:11px"><tr><td style="padding:2px 6px;color:var(--tx3)">Node</td>${Array.from({length:k},(_,j)=>`<td style="padding:2px 6px;color:var(--tx3)">v${j+1}ₙ</td>`).join('')}</tr>`;
+    subVN.forEach((row,i)=>{h+=`<tr><td style="padding:2px 6px;font-weight:500;color:var(--tx2)">${nodes[i].label}</td>${row.map(v=>`<td style="padding:2px 5px;color:var(--tx2)">${v.toFixed(3)}</td>`).join('')}</tr>`;});
+    h+='</table></div>';return h;
+  }});
+
+  const assign=kmeans(subVN,k);
+  clusterA=[...assign];
+  steps.push({title:`Step 4 — K-Means (K=${k})`,content:()=>{
+    let h=`<div style="font-size:11px;color:var(--tx3);margin-bottom:5px">Clusters by spectral coordinates, not canvas position.</div>`;
+    const byC=Array.from({length:k},(_,ci)=>nodes.filter((_,i)=>assign[i]===ci).map(nd=>nd.label));
+    h+=byC.map((grp,ci)=>`<div style="margin-bottom:4px;display:flex;align-items:center;gap:5px"><span class="kdot" style="background:${P[ci%P.length]}"></span><span style="font-size:12px;color:var(--tx2)">Cluster ${ci+1}: <strong style="color:${P[ci%P.length]};font-weight:600">${grp.join(', ')}</strong></span></div>`).join('');
+    h+=`<div class="ibox ok" style="margin-top:6px">Canvas coloured by cluster.</div>`;
+    return h;
+  }});
+
+  steps.push({title:'Step 5 — Why spectral beats raw K-Means',content:()=>`<div style="line-height:1.6;color:var(--tx2)"><div style="margin-bottom:5px"><strong style="color:var(--tx)">Raw (x,y) K-Means</strong> groups by geometric proximity only.</div><div style="margin-bottom:5px"><strong style="color:var(--tx)">Spectral clustering</strong> uses connectivity — linked nodes share eigenvector fingerprints regardless of position.</div><div><strong style="color:var(--tx)">Zero eigenvalues</strong> directly count disconnected components.</div></div>`});
+
+  showPipeline(steps);update();
+}
+
+function showPipeline(steps){
+  document.getElementById('pipeline').innerHTML=steps.map((s,i)=>`<div class="step-item"><div class="step-hdr" onclick="toggleStep(${i})"><div class="step-num">${i+1}</div><div class="step-title">${s.title}</div><div class="step-arr" id="sa-${i}">+</div></div><div class="step-body" id="sb-${i}"></div></div>`).join('');
+  steps.forEach((s,i)=>{document.getElementById(`sb-${i}`).innerHTML=s.content();});
+  if(steps.length)toggleStep(steps.length-1);
+}
+
+function toggleStep(i){
+  const b=document.getElementById(`sb-${i}`),a=document.getElementById(`sa-${i}`);
+  if(b)a.textContent=b.classList.toggle('open')?'−':'+';
+}
+
+function updateEigPanel(){
+  const n=nodes.length;
+  const el=document.getElementById('eig-list'),msg=document.getElementById('eig-msg'),badge=document.getElementById('zero-badge');
+  if(!n){el.innerHTML='';msg.textContent='Add nodes.';badge.textContent='';return;}
+  const{vals}=jacobiEig(buildL());
+  const zeros=vals.filter(v=>Math.abs(v)<0.01).length;
+  badge.textContent=`${zeros} zero${zeros!==1?'s':''}`;
+  const dk=isDark();
+  badge.style.cssText=`padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600;background:${zeros>1?(dk?'#0c2e52':'#E6F1FB'):(dk?'#04342C':'#E1F5EE')};color:${zeros>1?(dk?'#85B7EB':'#0C447C'):(dk?'#5DCAA5':'#085041')}`;
+  const mx=Math.max(...vals.map(Math.abs),0.001);
+  el.innerHTML=vals.map((v,i)=>{const z=Math.abs(v)<0.01,w=Math.round(Math.abs(v)/mx*100);return `<div class="eig-row"><span class="eig-lbl" style="${z?'color:#0F6E56;font-weight:600':''}">${z?'★':' '}λ${i+1}=${v.toFixed(3)}</span><div class="eig-bg"><div class="eig-fill" style="width:${w}%;background:${z?'#0F6E56':'#185FA5'};opacity:${z?1:0.45}"></div></div></div>`;}).join('');
+  if(zeros===0)msg.innerHTML='Fully connected — 0 zero eigenvalues.';
+  else if(zeros===1)msg.innerHTML='1 zero eigenvalue → <strong>1 connected component</strong>.';
+  else msg.innerHTML=`<strong>${zeros} zero eigenvalues</strong> → <strong>${zeros} components</strong>. Natural clusters!`;
+  msg.className='ibox '+(zeros<=1?'ok':'hi');
+}
+
+function populateConvSrc(){
+  const sel=document.getElementById('conv-src');
+  sel.innerHTML=nodes.map((n,i)=>`<option value="${i}">${n.label}</option>`).join('');
+  if(convSrc<nodes.length)sel.value=convSrc;
+}
+
+function updateConv(){
+  convSrc=parseInt(document.getElementById('conv-src').value)||0;
+  const k=parseInt(document.getElementById('k-hop').value);
+  const n=nodes.length;
+  if(!n||convSrc>=n){document.getElementById('conv-bars').innerHTML='';return;}
+  const L=buildL();
+  let Lk=k===0?Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j))):L.map(r=>[...r]);
+  for(let i=1;i<k;i++)Lk=matMul(Lk,L);
+  const x=new Array(n).fill(0);x[convSrc]=1;
+  const y=matVec(Lk,x);
+  convResult={src:convSrc,k,y,Lk};
+  const msgs=['k=0: identity — only the source itself.','k=1: direct 1-hop neighbours.',`k=${k}: ${k}-hop neighbourhood.`];
+  document.getElementById('conv-msg').textContent=k<=1?msgs[k]:msgs[2];
+  const maxA=Math.max(...y.map(Math.abs),0.001);
+  document.getElementById('conv-bars').innerHTML=nodes.map((nd,i)=>{
+    const v=y[i],pct=Math.round(Math.abs(v)/maxA*100);
+    const col=v>0?'#185FA5':v<0?'#993C1D':'#888';
+    return `<div class="cbar-row"><span class="cbar-lbl">${nd.label}</span><div class="cbar-bg"><div class="cbar-fill" style="width:${pct}%;background:${col}"></div></div><span class="cbar-val">${v.toFixed(3)}</span></div>`;
+  }).join('');
+  redraw();
+}
+
+function setMsg(m,t=''){const el=document.getElementById('graph-msg');el.textContent=m;el.className='ibox'+(t?' '+t:'');}
+
+function compCount(){
+  const n=nodes.length;if(!n)return 0;
+  const A=buildA(),vis=new Array(n).fill(false);let c=0;
+  function dfs(u){vis[u]=true;A[u].forEach((v,j)=>{if(v&&!vis[j])dfs(j);});}
+  for(let i=0;i<n;i++)if(!vis[i]){c++;dfs(i);}
+  return c;
+}
+
+function update(){
+  const n=nodes.length,e=edges.length,c=compCount();
+  document.getElementById('stat-n').textContent=n;
+  document.getElementById('stat-e').textContent=e;
+  const sc=document.getElementById('stat-comp');
+  sc.textContent=c;sc.style.color=c>1?'#993C1D':'#0F6E56';
+  if(!n)setMsg('Build a graph to begin.');
+  else if(n<2)setMsg('Add more nodes.');
+  else if(c>1)setMsg(`${c} disconnected components — ${c} zero eigenvalues expected.`,'hi');
+  else setMsg(`1 connected component — ${n} nodes, ${e} edges.`,'ok');
+  updateEigPanel();
+  renderMatrices();
+  if(viewMode==='conv')updateConv();
+  redraw();
+}
+
+function redraw(mp){
+  const P=pal(),F=fill();
+  const dk=isDark();
+  const edgeCol=dk?'#4a4a48':'#c4c4c0';
+  const bgNode=dk?'#2a2a28':'#f5f5f3';
+  const txNode=dk?'#666660':'#909090';
+
+  X.clearRect(0,0,C.width,C.height);
+
+  edges.forEach(([i,j])=>{
+    const a=nodes[i],b=nodes[j];
+    let col=edgeCol,lw=1.5;
+    if(viewMode==='conv'&&convResult&&convResult.Lk&&convResult.Lk[convResult.src]&&convResult.Lk[convResult.src][j]!==0){col='#185FA5';lw=2;}
+    if(edgeStart!==null&&(i===edgeStart||j===edgeStart)){col='#185FA5';lw=2.5;}
+    X.beginPath();X.moveTo(a.x,a.y);X.lineTo(b.x,b.y);X.strokeStyle=col;X.lineWidth=lw;X.stroke();
+  });
+
+  if(mode==='edge'&&edgeStart!==null&&mp){
+    const a=nodes[edgeStart];
+    X.beginPath();X.moveTo(a.x,a.y);X.lineTo(mp.x,mp.y);
+    X.strokeStyle='#185FA5';X.lineWidth=1.5;X.setLineDash([5,4]);X.stroke();X.setLineDash([]);
+  }
+
+  nodes.forEach((nd,i)=>{
+    let nfill=F[0],nstroke=P[0],ntxt=P[0];
+    if(viewMode==='cluster'&&clusterA){
+      const ci=clusterA[i]%P.length;nfill=F[ci];nstroke=P[ci];ntxt=P[ci];
+    }else if(viewMode==='conv'&&convResult){
+      const v=convResult.y[i],mx=Math.max(...convResult.y.map(Math.abs),0.001),inten=Math.min(1,Math.abs(v)/mx);
+      if(i===convResult.src){nfill='#185FA5';nstroke='#185FA5';ntxt='#fff';}
+      else if(Math.abs(v)>0.001){nfill=`rgba(24,95,165,${0.15+inten*0.5})`;nstroke='#185FA5';ntxt=dk?'#85B7EB':'#0C447C';}
+      else{nfill=bgNode;nstroke=edgeCol;ntxt=txNode;}
+    }
+    if(edgeStart===i){nfill='#185FA5';nstroke='#185FA5';ntxt='#fff';}
+    X.beginPath();X.arc(nd.x,nd.y,nd.r,0,Math.PI*2);
+    X.fillStyle=nfill;X.fill();
+    X.strokeStyle=nstroke;X.lineWidth=edgeStart===i?2.5:1.5;X.stroke();
+    X.fillStyle=ntxt;X.font='500 12px system-ui,sans-serif';
+    X.textAlign='center';X.textBaseline='middle';X.fillText(nd.label,nd.x,nd.y);
+  });
+}
+
+function loadS(name){
+  ph();nodes=[];edges=[];clusterA=null;convResult=null;
+  const cw=C.width,ch=C.height,cx=cw/2,cy=ch/2;
+  if(name==='two'){
+    [[cx-120,cy-50],[cx-165,cy+30],[cx-100,cy+75],[cx+100,cy-50],[cx+165,cy+30],[cx+110,cy+75]].forEach(([x,y],i)=>nodes.push({x,y,r:18,label:nodeLbl(i)}));
+    edges=[[0,1],[1,2],[0,2],[3,4],[4,5],[3,5]];
+    setView('cluster');setTimeout(()=>setMsg('2 components → 2 zero eigenvalues. Watch the matrices update!','hi'),50);
+  }else if(name==='bridge'){
+    [[cx-120,cy-50],[cx-165,cy+30],[cx-100,cy+75],[cx+100,cy-50],[cx+165,cy+30],[cx+110,cy+75]].forEach(([x,y],i)=>nodes.push({x,y,r:18,label:nodeLbl(i)}));
+    edges=[[0,1],[1,2],[0,2],[3,4],[4,5],[3,5],[2,3]];
+    setView('cluster');setTimeout(()=>setMsg('Bridge added — see C↔D entry appear in A and L!','ok'),50);
+  }else if(name==='rings'){
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2;nodes.push({x:cx+Math.cos(a)*110,y:cy+Math.sin(a)*75,r:16,label:nodeLbl(i)});}
+    for(let i=0;i<4;i++){const a=i/4*Math.PI*2;nodes.push({x:cx+Math.cos(a)*45,y:cy+Math.sin(a)*35,r:16,label:nodeLbl(8+i)});}
+    for(let i=0;i<8;i++)edges.push([i,(i+1)%8]);
+    for(let i=0;i<4;i++)edges.push([8+i,8+(i+1)%4]);
+    setView('cluster');
+    document.getElementById('k-sl').value=2;document.getElementById('k-out').textContent='2';kVal=2;
+    setTimeout(()=>{setMsg('2 rings — notice the block structure in A!','hi');runAll();},80);
+  }else if(name==='chain'){
+    for(let i=0;i<6;i++)nodes.push({x:cx-125+i*50,y:cy,r:18,label:nodeLbl(i)});
+    for(let i=0;i<5;i++)edges.push([i,i+1]);
+    setView('conv');setTimeout(()=>{populateConvSrc();updateConv();setMsg('Chain — see the tridiagonal pattern in L!','ok');},50);
+  }
+  update();
+}
+
+window.addEventListener('resize',snap);
+snap();setMode('node');update();
+</script>
